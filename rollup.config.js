@@ -66,8 +66,8 @@ const umdConfig = ({minify} = {}) => ({
 
 const rollupConfig = [
   // Browser-friendly UMD builds
-  umdConfig(),
-  umdConfig({minify: true}),
+  // umdConfig(),
+  // umdConfig({minify: true}),
 
   // CommonJS
   {
