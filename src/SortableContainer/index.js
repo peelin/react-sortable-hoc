@@ -41,7 +41,9 @@ export default function sortableContainer(
 
       validateProps(props);
 
-      this.state = {};
+      this.state = {
+        scaleFactor: 1, // Keeps track of any scaling that happens to container object
+      };
       this.manager = new Manager();
       this.events = {
         end: this.handleEnd,
@@ -63,45 +65,62 @@ export default function sortableContainer(
       };
     }
 
+    updateScaleFactor = () => {
+      const scaleFactor =
+        this.container.getBoundingClientRect().width /
+        this.container.offsetWidth;
+      this.setState({scaleFactor});
+    };
+
     componentDidMount() {
       const {useWindowAsScrollContainer} = this.props;
       const container = this.getContainer();
 
-      Promise.resolve(container).then((containerNode) => {
-        this.container = containerNode;
-        this.document = this.container.ownerDocument || document;
+      Promise.resolve(container)
+        .then((containerNode) => {
+          this.container = containerNode;
+          this.document = this.container.ownerDocument || document;
 
-        /*
-         *  Set our own default rather than using defaultProps because Jest
-         *  snapshots will serialize window, causing a RangeError
-         *  https://github.com/clauderic/react-sortable-hoc/issues/249
-         */
-        const contentWindow =
-          this.props.contentWindow || this.document.defaultView || window;
+          /*
+           *  Set our own default rather than using defaultProps because Jest
+           *  snapshots will serialize window, causing a RangeError
+           *  https://github.com/clauderic/react-sortable-hoc/issues/249
+           */
+          const contentWindow =
+            this.props.contentWindow || this.document.defaultView || window;
 
-        this.contentWindow =
-          typeof contentWindow === 'function' ? contentWindow() : contentWindow;
+          this.contentWindow =
+            typeof contentWindow === 'function'
+              ? contentWindow()
+              : contentWindow;
 
-        this.scrollContainer = useWindowAsScrollContainer
-          ? this.document.scrollingElement || this.document.documentElement
-          : getScrollingParent(this.container) || this.container;
+          this.scrollContainer = useWindowAsScrollContainer
+            ? this.document.scrollingElement || this.document.documentElement
+            : getScrollingParent(this.container) || this.container;
 
-        this.autoScroller = new AutoScroller(
-          this.scrollContainer,
-          this.onAutoScroll,
-        );
+          this.autoScroller = new AutoScroller(
+            this.scrollContainer,
+            this.onAutoScroll,
+          );
 
-        Object.keys(this.events).forEach((key) =>
-          events[key].forEach((eventName) =>
-            this.container.addEventListener(eventName, this.events[key], false),
-          ),
-        );
+          Object.keys(this.events).forEach((key) =>
+            events[key].forEach((eventName) =>
+              this.container.addEventListener(
+                eventName,
+                this.events[key],
+                false,
+              ),
+            ),
+          );
 
-        this.container.addEventListener('keydown', this.handleKeyDown);
-      });
+          this.container.addEventListener('keydown', this.handleKeyDown);
+        })
+        .then(this.updateScaleFactor)
+        .then(window.addEventListener('resize', this.updateScaleFactor));
     }
 
     componentWillUnmount() {
+      window.removeEventListener('resize', this.updateScaleFactor);
       if (this.helper && this.helper.parentNode) {
         this.helper.parentNode.removeChild(this.helper);
       }
@@ -125,10 +144,9 @@ export default function sortableContainer(
       }
 
       this.touched = true;
-      this.position = getPosition(event);
-
+      const position = getPosition(event);
+      this.position = position;
       const node = closest(event.target, (el) => el.sortableInfo != null);
-
       if (
         node &&
         node.sortableInfo &&
@@ -266,6 +284,7 @@ export default function sortableContainer(
           y: Math.max(this.margin.top, this.margin.bottom),
         };
         this.boundingClientRect = node.getBoundingClientRect();
+
         this.containerBoundingRect = containerBoundingRect;
         this.index = index;
         this.newIndex = index;
@@ -301,10 +320,12 @@ export default function sortableContainer(
         setInlineStyles(this.helper, {
           boxSizing: 'border-box',
           height: `${this.height}px`,
-          left: `${this.boundingClientRect.left - margin.left}px`,
+          left: `${(this.boundingClientRect.left - margin.left) /
+            this.state.scaleFactor}px`,
           pointerEvents: 'none',
           position: 'fixed',
-          top: `${this.boundingClientRect.top - margin.top}px`,
+          top: `${(this.boundingClientRect.top - margin.top) /
+            this.state.scaleFactor}px`,
           width: `${this.width}px`,
         });
 
@@ -332,11 +353,11 @@ export default function sortableContainer(
             height: containerHeight,
           } = useWindowAsScrollContainer
             ? {
-              top: 0,
-              left: 0,
-              width: this.contentWindow.innerWidth,
-              height: this.contentWindow.innerHeight,
-            }
+                top: 0,
+                left: 0,
+                width: this.contentWindow.innerWidth,
+                height: this.contentWindow.innerHeight,
+              }
             : this.containerBoundingRect;
           const containerBottom = containerTop + containerHeight;
           const containerRight = containerLeft + containerWidth;
@@ -555,6 +576,9 @@ export default function sortableContainer(
       // Adjust for window scroll
       translate.y -= window.pageYOffset - this.initialWindowScroll.top;
       translate.x -= window.pageXOffset - this.initialWindowScroll.left;
+
+      translate.y = translate.y / this.state.scaleFactor;
+      translate.x = translate.x / this.state.scaleFactor;
 
       this.translate = translate;
 
