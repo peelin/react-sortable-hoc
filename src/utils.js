@@ -79,6 +79,7 @@ export function setTransitionDuration(node, duration) {
 }
 
 export function closest(el, fn) {
+  // Finds first ancestor of el for which fn(...) is true
   while (el) {
     if (fn(el)) {
       return el;

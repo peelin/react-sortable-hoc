@@ -320,12 +320,10 @@ export default function sortableContainer(
         setInlineStyles(this.helper, {
           boxSizing: 'border-box',
           height: `${this.height}px`,
-          left: `${(this.boundingClientRect.left - margin.left) /
-            this.state.scaleFactor}px`,
+          left: `${this.boundingClientRect.left - margin.left}px`,
           pointerEvents: 'none',
           position: 'fixed',
-          top: `${(this.boundingClientRect.top - margin.top) /
-            this.state.scaleFactor}px`,
+          top: `${this.boundingClientRect.top - margin.top}px`,
           width: `${this.width}px`,
         });
 
@@ -577,8 +575,8 @@ export default function sortableContainer(
       translate.y -= window.pageYOffset - this.initialWindowScroll.top;
       translate.x -= window.pageXOffset - this.initialWindowScroll.left;
 
-      translate.y = translate.y / this.state.scaleFactor;
-      translate.x = translate.x / this.state.scaleFactor;
+      translate.y = translate.y;
+      translate.x = translate.x;
 
       this.translate = translate;
 
