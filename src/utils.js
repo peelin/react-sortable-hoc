@@ -68,10 +68,14 @@ export function setInlineStyles(node, styles) {
   });
 }
 
-export function setTranslate3d(node, translate) {
+export function setTranslate3d(node, translate, scaleFactor) {
   node.style[`${vendorPrefix}Transform`] =
-    translate == null ? '' : `translate3d(${translate.x}px,${translate.y}px,0)`;
+    translate == null
+      ? ''
+      : `translate3d(${translate.x}px,${translate.y}px,0) scale(${scaleFactor})`;
+  node.style['transform-origin'] = '0 0';
 }
+// translate == null ? `scale(${scaleFactor})` : `translate3d(${translate.x}px,${translate.y}px,0) scale(${scaleFactor})`;
 
 export function setTransitionDuration(node, duration) {
   node.style[`${vendorPrefix}TransitionDuration`] =
@@ -155,22 +159,25 @@ export function isTouchEvent(event) {
   );
 }
 
-export function getEdgeOffset(node, parent, offset = {left: 0, top: 0}) {
-  if (!node) {
-    return undefined;
-  }
+export function getEdgeOffset(node, parent) {
+  // if (!node) {
+  //   return undefined;
+  // }
 
-  // Get the actual offsetTop / offsetLeft value, no matter how deep the node is nested
-  const nodeOffset = {
-    left: offset.left + node.offsetLeft,
-    top: offset.top + node.offsetTop,
+  // // Get the actual offsetTop / offsetLeft value, no matter how deep the node is nested
+  // const nodeOffset = {
+  //   left: offset.left + node.offsetLeft,
+  //   top: offset.top + node.offsetTop,
+  // };
+
+  // if (node.parentNode === parent) {
+  //   return nodeOffset;
+  const nodeBCR = node.getBoundingClientRect();
+  const parentBCR = parent.getBoundingClientRect();
+  return {
+    left: nodeBCR.left - parentBCR.left,
+    top: nodeBCR.top - parentBCR.top,
   };
-
-  if (node.parentNode === parent) {
-    return nodeOffset;
-  }
-
-  return getEdgeOffset(node.parentNode, parent, nodeOffset);
 }
 
 export function getTargetIndex(newIndex, prevIndex, oldIndex) {

@@ -325,6 +325,8 @@ export default function sortableContainer(
           position: 'fixed',
           top: `${this.boundingClientRect.top - margin.top}px`,
           width: `${this.width}px`,
+          transform: `scale(${this.state.scaleFactor})`,
+          transformOrigin: '0 0',
         });
 
         if (isKeySorting) {
@@ -522,7 +524,7 @@ export default function sortableContainer(
         node.boundingClientRect = null;
 
         // Remove the transforms / transitions
-        setTranslate3d(el, null);
+        setTranslate3d(el, null, 1);
         setTransitionDuration(el, null);
         node.translate = null;
       }
@@ -621,7 +623,7 @@ export default function sortableContainer(
         setTransitionDuration(this.helper, keyboardSortingTransitionDuration);
       }
 
-      setTranslate3d(this.helper, translate);
+      setTranslate3d(this.helper, translate, this.state.scaleFactor);
     }
 
     animateNodes() {
@@ -643,9 +645,13 @@ export default function sortableContainer(
         const {index} = node.sortableInfo;
         const width = node.offsetWidth;
         const height = node.offsetHeight;
+        // const offset = {
+        //   height: this.height > height ? height / 2 : this.height / 2,
+        //   width: this.width > width ? width / 2 : this.width / 2,
+        // };
         const offset = {
-          height: this.height > height ? height / 2 : this.height / 2,
-          width: this.width > width ? width / 2 : this.width / 2,
+          height: this.height / 2,
+          width: this.width / 2,
         };
 
         // For keyboard sorting, we want user input to dictate the position of the nodes
@@ -813,7 +819,7 @@ export default function sortableContainer(
           }
         }
 
-        setTranslate3d(node, translate);
+        setTranslate3d(node, translate, 1);
         nodes[i].translate = translate;
       }
 

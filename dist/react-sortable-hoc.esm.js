@@ -150,11 +150,15 @@ function setInlineStyles(node, styles) {
     node.style[key] = styles[key];
   });
 }
-function setTranslate3d(node, translate) {
+function setTranslate3d(node, translate, scaleFactor) {
   node.style[''.concat(vendorPrefix, 'Transform')] =
     translate == null
       ? ''
-      : 'translate3d('.concat(translate.x, 'px,').concat(translate.y, 'px,0)');
+      : 'translate3d('
+          .concat(translate.x, 'px,')
+          .concat(translate.y, 'px,0) scale(')
+          .concat(scaleFactor, ')');
+  node.style['transform-origin'] = '0 0';
 }
 function setTransitionDuration(node, duration) {
   node.style[''.concat(vendorPrefix, 'TransitionDuration')] =
@@ -230,28 +234,12 @@ function isTouchEvent(event) {
   );
 }
 function getEdgeOffset(node, parent) {
-  var offset =
-    arguments.length > 2 && arguments[2] !== undefined
-      ? arguments[2]
-      : {
-          left: 0,
-          top: 0,
-        };
-
-  if (!node) {
-    return undefined;
-  }
-
-  var nodeOffset = {
-    left: offset.left + node.offsetLeft,
-    top: offset.top + node.offsetTop,
+  var nodeBCR = node.getBoundingClientRect();
+  var parentBCR = parent.getBoundingClientRect();
+  return {
+    left: nodeBCR.left - parentBCR.left,
+    top: nodeBCR.top - parentBCR.top,
   };
-
-  if (node.parentNode === parent) {
-    return nodeOffset;
-  }
-
-  return getEdgeOffset(node.parentNode, parent, nodeOffset);
 }
 function getTargetIndex(newIndex, prevIndex, oldIndex) {
   if (newIndex < oldIndex && newIndex > prevIndex) {
@@ -892,18 +880,18 @@ function sortableContainer(WrappedComponent) {
                     boxSizing: 'border-box',
                     height: ''.concat(_this.height, 'px'),
                     left: ''.concat(
-                      (_this.boundingClientRect.left - margin.left) /
-                        _this.state.scaleFactor,
+                      _this.boundingClientRect.left - margin.left,
                       'px',
                     ),
                     pointerEvents: 'none',
                     position: 'fixed',
                     top: ''.concat(
-                      (_this.boundingClientRect.top - margin.top) /
-                        _this.state.scaleFactor,
+                      _this.boundingClientRect.top - margin.top,
                       'px',
                     ),
                     width: ''.concat(_this.width, 'px'),
+                    transform: 'scale('.concat(_this.state.scaleFactor, ')'),
+                    transformOrigin: '0 0',
                   });
 
                   if (_isKeySorting) {
@@ -1193,7 +1181,7 @@ function sortableContainer(WrappedComponent) {
               var el = _node2.node;
               _node2.edgeOffset = null;
               _node2.boundingClientRect = null;
-              setTranslate3d(el, null);
+              setTranslate3d(el, null, 1);
               setTransitionDuration(el, null);
               _node2.translate = null;
             }
@@ -1569,8 +1557,8 @@ function sortableContainer(WrappedComponent) {
             };
             translate.y -= window.pageYOffset - this.initialWindowScroll.top;
             translate.x -= window.pageXOffset - this.initialWindowScroll.left;
-            translate.y = translate.y / this.state.scaleFactor;
-            translate.x = translate.x / this.state.scaleFactor;
+            translate.y = translate.y;
+            translate.x = translate.x;
             this.translate = translate;
 
             if (lockToContainerEdges) {
@@ -1620,7 +1608,7 @@ function sortableContainer(WrappedComponent) {
               );
             }
 
-            setTranslate3d(this.helper, translate);
+            setTranslate3d(this.helper, translate, this.state.scaleFactor);
           },
         },
         {
@@ -1653,8 +1641,8 @@ function sortableContainer(WrappedComponent) {
               var width = _node3.offsetWidth;
               var height = _node3.offsetHeight;
               var offset = {
-                height: this.height > height ? height / 2 : this.height / 2,
-                width: this.width > width ? width / 2 : this.width / 2,
+                height: this.height / 2,
+                width: this.width / 2,
               };
               var mustShiftBackward =
                 isKeySorting && index > this.index && index <= prevIndex;
@@ -1823,7 +1811,7 @@ function sortableContainer(WrappedComponent) {
                 }
               }
 
-              setTranslate3d(_node3, translate);
+              setTranslate3d(_node3, translate, 1);
               nodes[i].translate = translate;
             }
 
