@@ -316,18 +316,44 @@ export default function sortableContainer(
         };
 
         this.helper = this.helperContainer.appendChild(cloneNode(node));
-
+        console.log('node: ', node);
+        console.log('The bounding height is: ', this.boundingClientRect.top);
+        console.log('The bounding left is: ', this.boundingClientRect.left);
+        console.log('The margin-top is: ', margin.top);
+        // setInlineStyles(this.helper, {
+        //   boxSizing: 'border-box',
+        //   height: `${this.height}px`,
+        //   left: `${(this.boundingClientRect.left - margin.left) /
+        //     this.state.scaleFactor}px`,
+        //   pointerEvents: 'none',
+        //   position: 'fixed',
+        //   top: `${(this.boundingClientRect.top - margin.top) /
+        //     this.state.scaleFactor}px`,
+        //   width: `${this.width}px`,
+        // });
         setInlineStyles(this.helper, {
           boxSizing: 'border-box',
           height: `${this.height}px`,
-          left: `${(this.boundingClientRect.left - margin.left) /
-            this.state.scaleFactor}px`,
+          left: `0px`,
           pointerEvents: 'none',
-          position: 'fixed',
-          top: `${(this.boundingClientRect.top - margin.top) /
-            this.state.scaleFactor}px`,
+          position: 'absolute',
+          top: `0px`,
           width: `${this.width}px`,
         });
+
+        //         setInlineStyles(this.helper, {
+        //   boxSizing: 'border-box',
+        //   height: `${this.height}px`,
+        //   left: `${node.offsetLeft /
+        //     this.state.scaleFactor}px`,
+        //   pointerEvents: 'none',
+        //   position: 'absolute',
+        //   width: `${this.width}px`,
+        // });
+        console.log('offsetparent ', node.offsetParent);
+        console.log('The offset left is: ', node.offsetLeft);
+        console.log('The offset top is: ', node.offsetTop);
+        console.log('Placing element at ', margin.top);
 
         if (isKeySorting) {
           this.helper.focus();
