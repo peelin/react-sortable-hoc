@@ -846,6 +846,10 @@ function sortableContainer(WrappedComponent) {
           event,
         ) {
           try {
+            if (typeof event.preventDefault === 'function') {
+              event.preventDefault();
+            }
+
             var active = _this.manager.getActive();
 
             var _temp6 = (function() {
