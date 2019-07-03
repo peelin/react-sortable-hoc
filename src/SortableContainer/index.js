@@ -240,6 +240,10 @@ export default function sortableContainer(
     };
 
     handlePress = async (event) => {
+      //Prevent Safari from interpreting as drag-to-select
+      if (typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
       const active = this.manager.getActive();
 
       if (active) {
